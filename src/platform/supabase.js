@@ -7,8 +7,15 @@
    Row-level security in the database decides what each role may read and change. */
 import { createClient } from "@supabase/supabase-js";
 
-const URL_ = import.meta.env.VITE_SUPABASE_URL;
-const KEY_ = import.meta.env.VITE_SUPABASE_ANON_KEY;
+/* Accept the Project URL however it was pasted: trims spaces, quotes, a trailing slash, or a copied /rest/v1/ path. */
+function cleanUrl(u) {
+  let s = String(u || "").trim().replace(/^["']|["']$/g, "");
+  if (!s) return "";
+  if (!/^https?:\/\//i.test(s)) s = "https://" + s;
+  try { const x = new URL(s); return x.origin; } catch (e) { return s.replace(/\/+$/, ""); }
+}
+const URL_ = cleanUrl(import.meta.env.VITE_SUPABASE_URL);
+const KEY_ = String(import.meta.env.VITE_SUPABASE_ANON_KEY || "").trim().replace(/^["']|["']$/g, "");
 export const configured = Boolean(URL_ && KEY_);
 export const supabase = configured
   ? createClient(URL_, KEY_, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: "pkce" } })
